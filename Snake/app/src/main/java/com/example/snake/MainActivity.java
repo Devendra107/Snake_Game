@@ -1,7 +1,5 @@
 package com.example.snake;
 
-package com.tilak.snakegame;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -197,5 +195,158 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         positionX = (pointSize * randomXPosition) + pointSize;
         positionY = (pointSize * randomYPosition) + pointSize;
     }
-  //paste here
+    private void moveSnake(){
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+
+                //getting head position
+                int headPositionX = snakePointsList.get(0).getPositionX();
+                int headPositionY = snakePointsList.get(0).getPositionY();
+
+                //check if snake eaten a point
+                if( headPositionX == positionX && positionY == headPositionY){
+                    //grow snake after eating
+                    growSnake();
+
+                    //add another random point on the screen
+                    addPoints();
+                }
+
+                // check which side is the snake moving
+                switch (movingPosition){
+                    case "right" :
+                        //move snake's head to right and other points follow snake's head
+                        snakePointsList.get(0).setPositionX(headPositionX + (pointSize* 2));
+                        snakePointsList.get(0).setPositionY(headPositionY);
+                        break;
+                    case "left" :
+                        //move snake's head to left and other points follow snake's head
+                        snakePointsList.get(0).setPositionX(headPositionX - (pointSize* 2));
+                        snakePointsList.get(0).setPositionY(headPositionY);
+                        break;
+                    case "top" :
+                        //move snake's head to top and other points follow snake's head
+                        snakePointsList.get(0).setPositionX(headPositionX);
+                        snakePointsList.get(0).setPositionY(headPositionY - (pointSize * 2));
+                        break;
+                    case "bottom" :
+                        //move snake's head to bottom and other points follow snake's head
+                        snakePointsList.get(0).setPositionX(headPositionX);
+                        snakePointsList.get(0).setPositionY(headPositionY  + (pointSize * 2));
+                        break;
+                }
+
+                //check if game over. weather snake tough edges or snake itself
+                if (checkGameOver(headPositionX, headPositionY)) {
+
+                    //stop timer/ stop moving snake
+                    timer.purge();
+                    timer.cancel();
+
+                    //show game over dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder( MainActivity.this);
+                    builder.setMessage("Your score is "+ score);
+                    builder.setTitle("Game Over");
+                    builder.setCancelable(false);
+                    builder.setPositiveButton("Start Again", (dialogInterface, i) -> {
+                        //restart game
+                        init();
+                    });
+
+                    //timer runs in background so we need to show dialog on the main thread
+                    runOnUiThread(builder::show);
+                }
+                else{
+
+                    //lock canvas on surface-holder to draw on it
+                    canvas = surfaceHolder.lockCanvas();
+                    if (canvas != null) {
+                        // clear canvas with while color
+                        canvas.drawColor(Color.WHITE, PorterDuff.Mode.CLEAR);
+
+                        // change snake's head position. other snake will follow snake's head
+                        canvas.drawCircle(snakePointsList.get(0).getPositionX(), snakePointsList.get(0).getPositionY(), pointSize, createPointColor());
+
+                        //draw random point circle on the surface to be eaten by the snake
+                        canvas.drawCircle(positionX, positionY, pointSize, createPointColor());
+
+                        //other points is following snake's head
+                        for (int i = 1; i < snakePointsList.size(); i++) {
+
+                            int getTempPositionX = snakePointsList.get(i).getPositionX();
+                            int getTempPositionY = snakePointsList.get(i).getPositionY();
+
+                            //moving point across the head
+                            snakePointsList.get(i).setPositionX(headPositionX);
+                            snakePointsList.get(i).setPositionY(headPositionY);
+                            canvas.drawCircle(snakePointsList.get(i).getPositionX(), snakePointsList.get(i).getPositionY(), pointSize, createPointColor());
+
+                            //change head position
+                            headPositionX = getTempPositionX;
+                            headPositionY = getTempPositionY;
+
+                        }
+
+                        //unlock canvas to draw on surface-view
+                        surfaceHolder.unlockCanvasAndPost(canvas);
+                    }
+                }
+            }
+        },1000 - snakeMovingSpeed, 1000 - snakeMovingSpeed);
+    }
+
+    private void growSnake(){
+
+        // create new snake point
+        SnakePoints snakePoints = new SnakePoints(0,0);
+        // add points to the snake's take
+        snakePointsList.add(snakePoints);
+        //increment score
+        score++;
+        //setting score to textView
+        runOnUiThread(() -> scoreTV.setText(String.valueOf(score)));
+
+    }
+
+    private boolean checkGameOver(int headPositionX, int headPositionY){
+        boolean gameOver = false;
+
+        //check if snake's head touches edge
+        if(snakePointsList.get(0).getPositionX() <0 || snakePointsList.get(0).getPositionY() < 0
+        || snakePointsList.get(0).getPositionX() >= surfaceView.getWidth()
+        || snakePointsList.get(0).getPositionY() >= surfaceView.getHeight())
+        {
+            gameOver = true;
+        }
+        else{
+            // check if snake's head touches snake itself
+            for(int i=0;i<snakePointsList.size();i++){
+                if(headPositionX == snakePointsList.get(i).getPositionX()
+                && headPositionY == snakePointsList.get(i).getPositionY())
+                {
+                    gameOver = true;
+                    break;
+                }
+            }
+        }
+        return gameOver;
+
+    }
+
+    private Paint createPointColor(){
+
+        //check if color not defined before
+        if(pointColor == null){
+
+            pointColor = new Paint();
+            pointColor.setColor(snakeColor);
+            pointColor.setStyle(Paint.Style.FILL);
+            pointColor.setAntiAlias(true);
+        }
+
+        return pointColor;
+    }
+  
 }
