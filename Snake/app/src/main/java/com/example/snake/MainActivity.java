@@ -62,40 +62,47 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize UI elements
         surfaceView = findViewById(R.id.surfaceView);
         scoreTV = findViewById(R.id.scoreTV);
 
+        // Get reference to directional buttons
         final AppCompatImageButton topBtn = findViewById(R.id.topBtn);
-        final AppCompatImageButton leftBtn= findViewById(R.id.leftBtn);
+        final AppCompatImageButton leftBtn = findViewById(R.id.leftBtn);
         final AppCompatImageButton rightBtn = findViewById(R.id.rightBtn);
         final AppCompatImageButton bottomBtn = findViewById(R.id.bottomBtn);
 
+        // Set callback for surfaceView
         surfaceView.getHolder().addCallback(this);
 
+        // Set click listener for the top button
         topBtn.setOnClickListener(view -> {
-
-            if(!movingPosition.equals("bottom")){
+            // Update moving position if not moving downwards
+            if (!movingPosition.equals("bottom")) {
                 movingPosition = "top";
             }
         });
 
+        // Set click listener for the left button
         leftBtn.setOnClickListener(view -> {
-
-            if(!movingPosition.equals("right")){
+            // Update moving position if not moving to the right
+            if (!movingPosition.equals("right")) {
                 movingPosition = "left";
-            }
+            }   
         });
 
+        // Set click listener for the right button
         rightBtn.setOnClickListener(view -> {
-
-            if(!movingPosition.equals("left")){
+            // Update moving position if not moving to the left
+            if (!movingPosition.equals("left")) {
                 movingPosition = "right";
-            }
+            }  
         });
 
+        // Set click listener for the bottom button
         bottomBtn.setOnClickListener(view -> {
-
-            if(!movingPosition.equals("top")){
+            // Update moving position if not moving upwards
+            if (!movingPosition.equals("top")) {
                 movingPosition = "bottom";
             }
         });
@@ -116,10 +123,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+
+        // Cancel the timer if it is running
         if (timer != null) {
             timer.purge();
             timer.cancel();
         }
+        // Finish the activity
         finish();
     }
 
@@ -143,28 +153,38 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private void init(){
-
+        // Clear the snake points list
         snakePointsList.clear();
 
+        // Reset the score and update the score TextView
         scoreTV.setText("0");
         score = 0;
 
-        movingPosition ="right";
+        // Set the initial moving position of the snake
+        movingPosition = "right";
 
+        // Calculate the starting X position for the snake's body parts
         int startPositionX = (pointSize) * defaultTalePoints;
 
-        for(int i=0;i<defaultTalePoints;i++){
-
+        // Create the initial body parts of the snake
+        for (int i = 0; i < defaultTalePoints; i++) {
+            // Create a new SnakePoints object with the calculated position and point size
             SnakePoints snakePoints = new SnakePoints(startPositionX, pointSize);
+
+            // Add the SnakePoints object to the snake points list
             snakePointsList.add(snakePoints);
 
+            // Update the starting X position for the next body part
             startPositionX = startPositionX - (pointSize * 2);
         }
 
+        // Add the initial food points
         addPoints();
 
+        // Start moving the snake
         moveSnake();
     }
+
 
     private void addPoints(){
 
